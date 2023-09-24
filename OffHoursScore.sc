@@ -18,7 +18,6 @@ OffHoursScore {
     var rawHour, rawMinutes;
     var hour, minutes;
     #hour, minutes = arr;
-    //6 - 16 % 24
     rawHour = (hour - startHour) % 24;
     rawMinutes = (minutes - startMinute);
     ^((rawHour * 60 + rawMinutes) * 60);
@@ -40,12 +39,6 @@ OffHoursScore {
   clips {
     ^cycles.collect(_.clips(duration)).flat.sort({ |a, b| b.startTime > a.startTime });
   }
-
-  /*
-  modeIndexAtTime { |seconds| // here is where to control mode vis a vis elapsed time (since 4:30 pm)
-    ^((seconds / duration).lincurve(0, 1, 0, 7, 1)).asInteger % 6;
-  }
-  */
 
   generateProgram { |year, month, day|
     if (year.isNil) {
