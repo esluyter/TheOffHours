@@ -1,5 +1,5 @@
 OHClip {
-  var <cycle, <type, <>startTime, <>duration, <startTimeInCycle, <index, <name, <weight;
+  var <cycle, <type, <>startTime, <>duration, <startTimeInCycle, <index, <name, <weight, <>program, <>db = 0;
 
   classvar nextNodeID = 1001;
 
@@ -16,27 +16,43 @@ OHClip {
 
   *modes { ^[\lydian, \ionian, \mixolydian, \dorian, \aeolian, \phrygian]; }
   mode { ^this.class.modes[this.modeIndex]; }
-  modeIndex { ^this.score.modeIndexAtTime(startTime) }
+  modeIndex {
+    //^this.score.modeIndexAtTime(startTime);
+    if (program.notNil) {
+      ^program.modeIndexAtSeconds(startTime);
+    } {
+      ^0;
+    };
+  }
 
-  endTime { ^(startTime + duration) }
+  endTime { ^(startTime + duration); }
 
-  startFrame { ^this.score.sampleRate * startTime }
-  numFrames { ^this.score.sampleRate * duration }
+  startFrame { ^(this.score.sampleRate * startTimeInCycle).asInteger; }
+  numFrames { ^(this.score.sampleRate * duration).asInteger; }
+
+  startTimeOfDay { ^OffHoursScore.seconds2TimeOfDay(startTime); }
 
   speakerName { ^("sp" ++ (this.speaker + 1)); }
 
-  audioPath {
+  addBufferToScore { |score|
+    score.add([0.0, ["/b_allocRead", index + 4, this.audioPath, 0, -1]]);
+  }
+
+  audioPath { |mode|
+    mode = mode ?? this.mode;
     if (type == \birdsong) {
       ^(cycle.audioPath +/+ this.name.asString ++ ".wav");
     } {
-      ^(cycle.audioPath +/+ /*this.mode*/ "lydian" +/+ this.speakerName ++ ".wav") // <---------- this is temporary!!!!!!!!!
+      ^(cycle.audioPath +/+ mode +/+ this.speakerName ++ ".wav");
     };
   }
-  imagePath {
+
+  imagePath { |mode|
+    mode = mode ?? this.mode;
     if (type == \birdsong) {
       ^(cycle.imagePath +/+ this.name.asString ++ ".tiff");
     } {
-      ^(cycle.imagePath +/+ /*this.mode*/ "lydian" +/+ this.speakerName ++ "_" ++ this.index ++ ".tiff") // <---------- this is temporary!!!!!!!!!
+      ^(cycle.imagePath +/+ mode +/+ this.speakerName ++ "_" ++ this.index ++ ".tiff");
     };
   }
 
@@ -54,34 +70,59 @@ OHClip {
     var x;
     startTime.postln;
     score.add([startTime, [\b_close, this.speaker]]);
-    score.add([startTime, [\b_read, this.speaker, this.audioPath, startTimeInCycle * 48000, 32768, 0, 1].postln]);
+    score.add([startTime, [\b_read, this.speaker, this.audioPath, this.startFrame, 32768, 0, 1].postln]);
     score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker])]);
     score.add([this.endTime, x.freeMsg]);
 
     nextNodeID = nextNodeID + 1;
   }
 
-  generateImage {
+  addBirdToScore { |score, server|
+    startTime.postln;
+    score.add([startTime, (Synth.basicNew(\bird, server, nextNodeID)).newMsg(args: [buf: index + 4])]);
+
+    nextNodeID = nextNodeID + 1;
+  }
+
+  generateImages {
+    [\lydian, \ionian, \mixolydian, \dorian, \aeolian, \phrygian].do { |mode|
+      this.generateImage(mode);
+    }
+  }
+
+  generateImage { |mode|
     var image, tmp_images = nil!2;
 
     var sampleRate = this.score.sampleRate;
     var hops = 4;
+
+    //var path = "/Users/ericsluyter/Documents/sc temp/Off Hours/samples/lydian/sp1.wav";
+    var path = this.audioPath(mode).debug("audio path (file in)");
+    //var numFrames = 5461632.0;
+    var numFrames = this.numFrames.debug("num frames");
+    //var startFrame = 47513952.0;
+    var startFrame = this.startFrame.debug("start frame");
+
+    var data = (
+      Signal.read(path, numFrames, startFrame)
+      + Signal.read(path, numFrames, startFrame, 1)
+    ) * 1.8;
+
+    data.size.debug("data size");
 
     // analyze audio : this will take a while to run
     (2048 * [4, 1]).do { |size, imageIndex|
 
       //var size = 4096 * 0.5;
 
-      var window = Signal.hanningWindow(size.postln);
+      var window = Signal.hanningWindow(size);
       var imag = Signal.newClear(size);
       var cosTable = Signal.fftCosTable(size);
-
-      var data = Signal.read(this.audioPath, this.numFrames, this.startFrame);
 
       var numFrames = (data.size / size * hops);
       var fftMags = Array(numFrames);
 
-      ("processing cycle " ++ cycle.speaker ++ " clip " ++ index).postln;
+      ("processing cycle " ++ cycle.speaker ++ " clip " ++ index ++ " mode " ++ mode ++ " size " ++ size).debug;
 
       (data.size / size * hops).asInteger.do { |j|
         var i = j / hops;
@@ -91,8 +132,7 @@ OHClip {
         fftMags.add((fft(r, imag, cosTable).magnitude.log10)[0..(size * 20000/sampleRate).asInteger]);
       };
 
-      ("done processing cycle " ++ cycle.speaker ++ " clip " ++ index).postln;
-      ("generating image for cycle " ++ cycle.speaker ++ " clip " ++ index).postln;
+      ("generating image for cycle " ++ cycle.speaker ++ " clip " ++ index ++ " mode " ++ mode ++ " size " ++ size).debug;
 
       {
         var width = fftMags.size;
@@ -114,9 +154,9 @@ OHClip {
 
         tmp_images[imageIndex] = image;
       }.();
-
-      ("done generating image for  cycle " ++ cycle.speaker ++ " clip " ++ index).postln;
     };
+
+    ("compositing and writing image for  cycle " ++ cycle.speaker ++ " clip " ++ index ++ " mode " ++ mode).postln;
 
     image = Image.new(tmp_images[0].width, tmp_images[0].height);
     image.draw { |image|
@@ -127,7 +167,7 @@ OHClip {
       }
     };
 
-    image.write(this.imagePath);
+    image.write(this.imagePath(mode).debug("image path (file out)"));
 
     tmp_images.do(_.free);
     image.free;

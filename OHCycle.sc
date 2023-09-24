@@ -39,10 +39,6 @@ OHCycle {
     ^ret;
   }
 
-  generateImages {
-    clips.do(_.generateImage);
-  }
-
   audioPath { ^score.audioPath }
   imagePath { ^score.imagePath }
 }

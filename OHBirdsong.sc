@@ -30,6 +30,10 @@ OHBirdsong {
     clips.do(_.generateImage);
   }
 
+  addBuffersToScore { |score|
+    clips.do(_.addBufferToScore(score));
+  }
+
   speaker { ^0 }
 
   audioPath { ^(score.audioPath +/+ "birdsong") }

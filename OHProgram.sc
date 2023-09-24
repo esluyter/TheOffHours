@@ -3,6 +3,7 @@ OHProgram {
   var <score;
   var <clips, <birdClips;
   var <deletedClips;
+  var <suntimes;
   var nextNodeID = 1001;
 
   *new { |score, year, month, day|
@@ -11,9 +12,17 @@ OHProgram {
 
   init {
     var thisClip, thisClips, thisClipsInclusive;
-    var clipsPile = score.clips.scramble;
+    var clipsPile = score.clips.scramble.collect(_.program_(this));
+
+    var today = Date.getDate;
+    year ?? { year = today.year };
+    month ?? { month = today.month };
+    day ?? { day = today.day };
+
     clips = [];
     deletedClips = [];
+
+    suntimes = OHSunTimes(year, month, day);
 
     // filter clips here:
     while ({ clipsPile.size > 0 }) {
@@ -88,7 +97,19 @@ OHProgram {
   duration { ^score.duration }
   sampleRate { ^score.sampleRate }
 
-  renderScore {
+  modeIndexAtSeconds { |seconds|
+    ^((suntimes.continuum(seconds).clip(0, 1) * 7) % 6).asInteger;
+  }
+
+  dawnChorusStartTime { ^(suntimes.sunriseSeconds - (75 * 60)).clip(0, score.duration - (30 * 60)); }
+  dawnChorusEndTime { ^(suntimes.sunriseSeconds + (20 * 60)).clip(0, score.duration); }
+  dawnChorusDuration { ^(this.dawnChorusEndTime - this.dawnChorusStartTime); }
+
+  duskChorusStartTime { ^(suntimes.sunsetSeconds - (15 * 60)).clip(0, score.duration); }
+  duskChorusEndTime { ^(suntimes.sunsetSeconds + (45 * 60)).clip(0, score.duration); }
+  duskChorusDuration { ^(this.duskChorusEndTime - this.duskChorusStartTime); }
+
+  renderScore { |filename = "test.wav", recordDuration = 54000|
     var server = Server(\nrt,
       options: ServerOptions()
       .sampleRate_(48000)
@@ -99,33 +120,48 @@ OHProgram {
       [0.0, ['/d_recv',
         SynthDef(\stream, {
           var buf = \buf.kr(0);
-          var sig = VDiskIn.ar(1, buf, 1);
-          var amp = \amp.kr(0.1);
+          var sig = VDiskIn.ar(2, buf, 1);
+          var amp = \amp.kr(1);
           var out = \out.kr(0);
-          Out.ar(out, sig * amp);
+          Out.ar(out, sig[0] * amp);
+          Out.ar((out + 1) % 4, sig[1] * amp);
         }).asBytes;
       ]],
-      [0.0, [\b_alloc, 0, 32768, 1]],
-      [0.0, [\b_alloc, 1, 32768, 1]],
-      [0.0, [\b_alloc, 2, 32768, 1]],
-      [0.0, [\b_alloc, 3, 32768, 1]],
+      [0.0, ['/d_recv',
+        SynthDef(\bird, {
+          var buf = \buf.kr(0);
+          var sig = PlayBuf.ar(2, buf, BufRateScale.kr(buf), doneAction: 2);
+          var amp = \amp.kr(1);
+          4.do { |i|
+            var leftAmp = LFDNoise3.ar(0.2).clip(0, 1);
+            var rightAmp = LFDNoise3.ar(0.2).clip(0, 1);
+            Out.ar(i, sig[0] * amp * leftAmp);
+            Out.ar(i, sig[1] * amp * rightAmp);
+          };
+        }).asBytes;
+      ]],
+      [0.0, [\b_alloc, 0, 32768, 2]],
+      [0.0, [\b_alloc, 1, 32768, 2]],
+      [0.0, [\b_alloc, 2, 32768, 2]],
+      [0.0, [\b_alloc, 3, 32768, 2]],
     ]);
+
+    this.score.birdsong.addBuffersToScore(score);
 
     clips.do { |clip|
       clip.addToScore(score, server);
     };
 
     birdClips.do { |clip|
-      clip.addToScore(score, server);
+      clip.addBirdToScore(score, server);
     };
 
-
     score.recordNRT(
-      outputFilePath: "/Users/ericsluyter/Documents/sc temp/Off Hours/render/test.wav",
+      outputFilePath: (this.score.recordPath +/+ filename).resolveRelative.debug("recording to"),
       headerFormat: "w64",
       sampleFormat: "int16",
       options: server.options,
-      duration: 15 * 60 * 60,
+      duration: recordDuration, //15 * 60 * 60,
       action: { "done".postln }
     );
 
