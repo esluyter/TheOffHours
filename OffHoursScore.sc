@@ -2,7 +2,7 @@ OffHoursScore {
   var <path;
   var <cycles, <birdsong;
   var <sampleRate = 48000;
-  var <duration = 54000.0; // 15 * 60 * 60
+  var <duration = 54000.0; // 15 hours, in seconds
   classvar <startHour = 16;
   classvar <startMinute = 30;
 
