@@ -1,7 +1,7 @@
 OffHoursScore {
   var <path;
   var <cycles, <birdsong;
-  var <sampleRate = 48000;
+  var <sampleRate = 48000; // everything needs to run at 48, or the whole thing breaks?
   var <duration = 54000.0; // 15 hours, in seconds
   classvar <startHour = 16;
   classvar <startMinute = 30;
