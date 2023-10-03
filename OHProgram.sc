@@ -35,6 +35,7 @@ OHProgram {
 
         var currentContinuum = suntimes.continuum(thisClip.startTime);
         var modContinuum = currentContinuum.lincurve(0.1, 0.75, 1.0, 0.0, 2) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
+        var breathModContinuum = currentContinuum.linlin(0.1, 0.75, 1.0, 0.0) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
 
         var inclusive = true;//thisClip.type == \calls;
         var typeSensitive = true;
@@ -65,8 +66,8 @@ OHProgram {
         switch (thisClip.type)
         { \grandChord } { clips = clips.add(thisClip) }
         { \shadowChord } { clips = clips.add(thisClip) }
-        { \fastBreaths } { thisClip.db = modContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
-        { \slowBreaths } { thisClip.db = modContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
+        { \fastBreaths } { thisClip.db = breathModContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
+        { \slowBreaths } { thisClip.db = breathModContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
         { \calls } { conditionalAddClip.() }
         { deletedClips = deletedClips.add(thisClip) };
 
