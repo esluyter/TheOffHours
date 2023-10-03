@@ -90,9 +90,13 @@ OHProgram {
     [1..] // leave out the first one because birdsong can't happen in negative time
     .do { |startTime|
       var clip, clipStartTime;
+      var density = 0.38;
       // pick a potential birdsong by weight
       clip = score.birdsong.randomBird;
       clipStartTime = startTime - clip.duration;
+      if ((clipStartTime >= suntimes.sunsetSeconds) and: (clipStartTime <= OffHoursScore.timeOfDay2Seconds([11, 00]))) {
+        density = 0.45;
+      };
       clip = clip.copy;
       clip.startTime = clipStartTime;
       if (0.38.coin) { // <----- change this for different density
