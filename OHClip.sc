@@ -71,7 +71,7 @@ OHClip {
     startTime.postln;
     score.add([startTime, [\b_close, this.speaker]]);
     score.add([startTime, [\b_read, this.speaker, this.audioPath, this.startFrame, 32768, 0, 1].postln]);
-    score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker])]);
+    score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker, amp: this.db.dbamp])]);
     score.add([this.endTime, x.freeMsg]);
 
     nextNodeID = nextNodeID + 1;
