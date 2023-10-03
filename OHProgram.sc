@@ -116,7 +116,7 @@ OHProgram {
   duskChorusEndTime { ^(suntimes.sunsetSeconds + (45 * 60)).clip(0, score.duration); }
   duskChorusDuration { ^(this.duskChorusEndTime - this.duskChorusStartTime); }
 
-  renderScore { |filename = "test.wav", recordDuration = 54000|
+  renderScore { |filename = "test.wav", recordDuration = 54000, action|
     var server = Server(\nrt,
       options: ServerOptions()
       .sampleRate_(48000)
@@ -169,7 +169,7 @@ OHProgram {
       sampleFormat: "int16",
       options: server.options,
       duration: recordDuration, //15 * 60 * 60,
-      action: { "done".postln }
+      action: { action.value }
     );
 
 
