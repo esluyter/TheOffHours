@@ -4,7 +4,7 @@ OHSunTimes {
   sunriseSeconds { ^OffHoursScore.timeOfDay2Seconds(sunrise); }
   sunsetSeconds { ^OffHoursScore.timeOfDay2Seconds(sunset); }
 
-  continuum { |seconds| ^seconds.linlin(this.sunsetSeconds, this.sunriseSeconds, 0, 1, nil) }
+  continuum { |seconds| ^seconds.linlin(this.sunsetSeconds - 6000, this.sunriseSeconds, 0, 1, nil) }
 
   *new { |year, month, day|
     var strtimes = [];

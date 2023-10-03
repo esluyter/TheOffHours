@@ -34,7 +34,7 @@ OHProgram {
         var conditionalAddClip;
 
         var currentContinuum = suntimes.continuum(thisClip.startTime);
-        var modContinuum = currentContinuum.linlin(0.1, 0.4, 1.0, 0.0) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
+        var modContinuum = currentContinuum.lincurve(0.1, 0.75, 1.0, 0.0, 2) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
 
         var inclusive = true;//thisClip.type == \calls;
         var typeSensitive = true;
@@ -108,12 +108,12 @@ OHProgram {
     ^((suntimes.continuum(seconds).clip(0, 1) * 7) % 6).asInteger;
   }
 
-  dawnChorusStartTime { ^(suntimes.sunriseSeconds - (75 * 60)).clip(0, score.duration - (30 * 60)); }
-  dawnChorusEndTime { ^(suntimes.sunriseSeconds + (20 * 60)).clip(0, score.duration); }
+  dawnChorusStartTime { ^(suntimes.sunriseSeconds - (30 * 60)).clip(0, score.duration); }
+  dawnChorusEndTime { ^(suntimes.sunriseSeconds + (15 * 60)).clip(0, score.duration); }
   dawnChorusDuration { ^(this.dawnChorusEndTime - this.dawnChorusStartTime); }
 
-  duskChorusStartTime { ^(suntimes.sunsetSeconds - (15 * 60)).clip(0, score.duration); }
-  duskChorusEndTime { ^(suntimes.sunsetSeconds + (45 * 60)).clip(0, score.duration); }
+  duskChorusStartTime { ^(suntimes.sunsetSeconds - (30 * 60)).clip(0, score.duration); }
+  duskChorusEndTime { ^(suntimes.sunsetSeconds + (15 * 60)).clip(0, score.duration); }
   duskChorusDuration { ^(this.duskChorusEndTime - this.duskChorusStartTime); }
 
   renderScore { |filename = "test.wav", recordDuration = 54000, action|
