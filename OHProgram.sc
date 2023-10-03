@@ -95,7 +95,7 @@ OHProgram {
       // pick a potential birdsong by weight
       clip = score.birdsong.randomBird;
       clipStartTime = startTime - clip.duration;
-      if ((clipStartTime >= suntimes.sunsetSeconds) and: (clipStartTime <= OffHoursScore.timeOfDay2Seconds([11, 00]))) {
+      if ((clipStartTime >= suntimes.sunsetSeconds) and: (clipStartTime <= OffHoursScore.timeOfDay2Seconds([23, 00]))) {
         density = 0.45;
       };
       clip = clip.copy;
