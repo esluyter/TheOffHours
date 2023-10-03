@@ -130,8 +130,12 @@ OHProgram {
           var sig = VDiskIn.ar(2, buf, 1);
           var amp = \amp.kr(1);
           var out = \out.kr(0);
-          Out.ar(out, sig[0] * amp);
-          Out.ar((out + 1) % 4, sig[1] * amp);
+          var pannedClarinet = Pan2.ar(sig[1], LFDNoise3.ar(0.2).exprange(0.01, 1.0).linlin(0, 1, -1, 1));
+          var left = sig[0] + pannedClarinet[0];
+          var right = pannedClarinet[1];
+
+          Out.ar(out, left * amp);
+          Out.ar((out + 1) % 4, right * amp);
         }).asBytes;
       ]],
       [0.0, ['/d_recv',
