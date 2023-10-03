@@ -168,7 +168,7 @@ OHProgramView {
           if (duration <= (5 * 60 * 60)) {
             Pen.color = if (grayAmt < 0.5) { Color.white } { Color.black };
             Pen.rotate(pi/2, left, top);
-            Pen.stringAtPoint(clip.type.asString ++ " / " ++ clip.mode.asString, (left)@(top - 15));
+            Pen.stringAtPoint(clip.type.asString ++ " / " ++ clip.db.round(0.1).asString ++ "db /" ++ clip.mode.asString, (left)@(top - 15));
             Pen.rotate(-pi/2, left, top);
           };
         };

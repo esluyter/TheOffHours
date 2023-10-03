@@ -65,8 +65,8 @@ OHProgram {
         switch (thisClip.type)
         { \grandChord } { clips = clips.add(thisClip) }
         { \shadowChord } { clips = clips.add(thisClip) }
-        { \fastBreaths } { conditionalAddClip.() }
-        { \slowBreaths } { conditionalAddClip.() }
+        { \fastBreaths } { thisClip.db = modContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
+        { \slowBreaths } { thisClip.db = modContinuum.linlin(0, 1, -16, 0); conditionalAddClip.() }
         { \calls } { conditionalAddClip.() }
         { deletedClips = deletedClips.add(thisClip) };
 
@@ -134,7 +134,8 @@ OHProgram {
           var sig = VDiskIn.ar(2, buf, 1);
           var amp = \amp.kr(1);
           var out = \out.kr(0);
-          var pannedClarinet = Pan2.ar(sig[1], LFDNoise3.ar(0.2).exprange(0.01, 1.0).linlin(0, 1, -1, 1));
+          var pan = (LFDNoise3.ar(0.2).exprange(0.01, 1.0) * Line.ar(0, 1, 5)).linlin(0, 1, -1, 1);
+          var pannedClarinet = Pan2.ar(sig[1], pan);
           var left = sig[0] + pannedClarinet[0];
           var right = pannedClarinet[1];
 
