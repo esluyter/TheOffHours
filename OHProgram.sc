@@ -35,7 +35,7 @@ OHProgram {
 
         var currentContinuum = suntimes.continuum(thisClip.startTime);
         var modContinuum = currentContinuum.lincurve(0.1, 0.75, 1.0, 0.0, 2) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
-        var breathModContinuum = currentContinuum.linlin(0.1, 0.75, 1.0, 0.0) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
+        var breathModContinuum = currentContinuum.linlin(0.1, 0.65, 1.0, 0.0) + currentContinuum.linlin(0.75, 0.92, 0.0, 1.0);
 
         var inclusive = true;//thisClip.type == \calls;
         var typeSensitive = true;
