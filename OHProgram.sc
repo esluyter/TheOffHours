@@ -126,7 +126,8 @@ OHProgram {
       options: ServerOptions()
       .sampleRate_(48000)
       .numOutputBusChannels_(4)
-      .numInputBusChannels_(0));
+      .numInputBusChannels_(0)
+      .memSize_(1024*1024));
 
     var score = Score([
       [0.0, ['/d_recv',
@@ -142,6 +143,24 @@ OHProgram {
 
           Out.ar(out, left * amp);
           Out.ar((out + 1) % 4, right * amp);
+        }).asBytes;
+      ]],
+      [0.0, ['/d_recv',
+        SynthDef(\streamVerb, {
+          var buf = \buf.kr(0);
+          var sig = VDiskIn.ar(2, buf, 1);
+          var amp = \amp.kr(1);
+          var verbAmp = \verbAmp.kr(0);
+          var out = \out.kr(0);
+          var pan = (LFDNoise3.ar(0.2).exprange(0.01, 1.0) * Line.ar(0, 1, 5)).linlin(0, 1, -1, 1);
+          var pannedClarinet = Pan2.ar(sig[1], pan);
+          var left = sig[0] + pannedClarinet[0];
+          var right = pannedClarinet[1];
+          var leftVerb = PartConv.ar(left * 0.01, 4096, 4);
+          var rightVerb = PartConv.ar(right * 0.01, 4096, 5);
+
+          Out.ar(out, (left * amp) + (leftVerb * verbAmp));
+          Out.ar((out + 1) % 4, (right * amp) + (rightVerb * verbAmp));
         }).asBytes;
       ]],
       [0.0, ['/d_recv',
@@ -161,6 +180,8 @@ OHProgram {
       [0.0, [\b_alloc, 1, 32768, 2]],
       [0.0, [\b_alloc, 2, 32768, 2]],
       [0.0, [\b_alloc, 3, 32768, 2]],
+      [0.0, ["/b_allocRead", 4, this.score.path +/+ "samples/ir/irspectrumLf.wav", 0, -1]],
+      [0.0, ["/b_allocRead", 5, this.score.path +/+ "samples/ir/irspectrumRf.wav", 0, -1]],
     ]);
 
     this.score.birdsong.addBuffersToScore(score);

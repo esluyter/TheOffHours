@@ -34,8 +34,9 @@ OHClip {
 
   speakerName { ^("sp" ++ (this.speaker + 1)); }
 
+  birdBufnum { ^(index + 12) } // leave room for cycle buffers (x4), IR buffers (x2), dawn buffers (x?)
   addBufferToScore { |score|
-    score.add([0.0, ["/b_allocRead", index + 4, this.audioPath, 0, -1]]);
+    score.add([0.0, ["/b_allocRead", this.birdBufnum, this.audioPath, 0, -1]]);
   }
 
   audioPath { |mode|
@@ -71,7 +72,12 @@ OHClip {
     startTime.postln;
     score.add([startTime, [\b_close, this.speaker]]);
     score.add([startTime, [\b_read, this.speaker, this.audioPath, this.startFrame, 32768, 0, 1].postln]);
-    score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker, amp: this.db.dbamp])]);
+    if (db == 0) {
+      score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker])]);
+    } {
+      score.add([startTime, (x = Synth.basicNew(\streamVerb, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker, amp: this.db.dbamp, verbAmp: this.db.linlin(-16, -9, -9, -20, nil)])]);
+    };
+
     score.add([this.endTime, x.freeMsg]);
 
     nextNodeID = nextNodeID + 1;
@@ -79,7 +85,7 @@ OHClip {
 
   addBirdToScore { |score, server|
     startTime.postln;
-    score.add([startTime, (Synth.basicNew(\bird, server, nextNodeID)).newMsg(args: [buf: index + 4])]);
+    score.add([startTime, (Synth.basicNew(\bird, server, nextNodeID)).newMsg(args: [buf: this.birdBufnum])]);
 
     nextNodeID = nextNodeID + 1;
   }
