@@ -164,7 +164,9 @@ OHProgram {
           DetectSilence.ar(leftVerb + gate, 0.0001, doneAction: 2);
 
           Out.ar(out, (left * amp) + (leftVerb * verbAmp));
-          Out.ar((out + 1) % 4, (right * amp) + (rightVerb * verbAmp));
+          Out.ar((out + 1) % 4, (right * amp) + (rightVerb * verbAmp) + (leftVerb * -9.dbamp));
+          Out.ar((out + 2) % 4, (leftVerb * -12.dbamp));
+          Out.ar((out + 3) % 4, (leftVerb * -9.dbamp));
         }).asBytes;
       ]],
       [0.0, ['/d_recv',
