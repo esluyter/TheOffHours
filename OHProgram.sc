@@ -158,8 +158,8 @@ OHProgram {
           var pannedClarinet = Pan2.ar(sig[1], pan);
           var left = sig[0] + pannedClarinet[0];
           var right = pannedClarinet[1];
-          var leftVerb = PartConv.ar(left * 0.01, 4096, 4);
-          var rightVerb = PartConv.ar(right * 0.01, 4096, 5);
+          var leftVerb = PartConv.ar(left * 0.02 * amp, 4096, 4);
+          var rightVerb = PartConv.ar(right * 0.02 * amp, 4096, 5);
 
           DetectSilence.ar(leftVerb + gate, 0.0001, doneAction: 2);
 
