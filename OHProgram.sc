@@ -100,7 +100,7 @@ OHProgram {
       };
       clip = clip.copy;
       clip.startTime = clipStartTime;
-      if (0.38.coin) { // <----- change this for different density
+      if (density.coin) { // <----- change this for different density
         birdClips = birdClips.add(clip);
       };
     };
