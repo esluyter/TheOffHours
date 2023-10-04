@@ -75,10 +75,10 @@ OHClip {
     if (db == 0) {
       score.add([startTime, (x = Synth.basicNew(\stream, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker])]);
     } {
-      score.add([startTime, (x = Synth.basicNew(\streamVerb, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker, amp: this.db.dbamp, verbAmp: this.db.linlin(-16, -9, -9, -20, nil)])]);
+      score.add([startTime, (x = Synth.basicNew(\streamVerb, server, nextNodeID)).newMsg(args: [buf: this.speaker, out: this.speaker, amp: this.db.dbamp, verbAmp: this.db.linlin(-16, -9, -9, -20, nil).dbamp])]);
     };
 
-    score.add([this.endTime, x.freeMsg]);
+    score.add([this.endTime, x.setMsg(\gate, 0)]);
 
     nextNodeID = nextNodeID + 1;
   }

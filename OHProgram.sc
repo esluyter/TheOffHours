@@ -131,7 +131,7 @@ OHProgram {
 
     var score = Score([
       [0.0, ['/d_recv',
-        SynthDef(\stream, {
+        SynthDef(\stream, { |gate = 1|
           var buf = \buf.kr(0);
           var sig = VDiskIn.ar(2, buf, 1);
           var amp = \amp.kr(1);
@@ -141,14 +141,16 @@ OHProgram {
           var left = sig[0] + pannedClarinet[0];
           var right = pannedClarinet[1];
 
+          FreeSelf.kr(0.9 - gate);
+
           Out.ar(out, left * amp);
           Out.ar((out + 1) % 4, right * amp);
         }).asBytes;
       ]],
       [0.0, ['/d_recv',
-        SynthDef(\streamVerb, {
+        SynthDef(\streamVerb, { |gate = 1|
           var buf = \buf.kr(0);
-          var sig = VDiskIn.ar(2, buf, 1);
+          var sig = VDiskIn.ar(2, buf, 1) * gate;
           var amp = \amp.kr(1);
           var verbAmp = \verbAmp.kr(0);
           var out = \out.kr(0);
@@ -158,6 +160,8 @@ OHProgram {
           var right = pannedClarinet[1];
           var leftVerb = PartConv.ar(left * 0.01, 4096, 4);
           var rightVerb = PartConv.ar(right * 0.01, 4096, 5);
+
+          DetectSilence.ar(leftVerb + gate, 0.0001, doneAction: 2);
 
           Out.ar(out, (left * amp) + (leftVerb * verbAmp));
           Out.ar((out + 1) % 4, (right * amp) + (rightVerb * verbAmp));
