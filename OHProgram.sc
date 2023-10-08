@@ -182,15 +182,59 @@ OHProgram {
           };
         }).asBytes;
       ]],
+      [0.0, ['/d_recv',
+        SynthDef(\chorus, {
+          var out = 0;
+          var buf = \buf.kr(0);
+          var insig = PlayBuf.ar(1, buf, BufRateScale.kr(buf), startPos: 0, doneAction: 2);
+          var verb = PartConv.ar(insig * 0.01, 4096, 4, 1.0);
+          var mix = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
+          var sig = XFade2.ar(insig, verb, mix.linlin(-1, 1, -1, 0)) * mix.linexp(-1, 1, 0.4, 1.0);
+          var pan = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
+          var outsig = PanAz.ar(4, sig, pan) * 3.dbamp;
+          Out.ar(out, outsig);
+        }).asBytes;
+      ]],
+      [0.0, ['/d_recv',
+        SynthDef(\rotate, {
+          var in = In.ar(0, 4);
+          var amt = Env([0, 1, 0], [30 * 60, 15 * 60], [-1, 1] * 0).ar(2);
+          var sig = DC.ar(0);
+          var offset = LFDNoise3.ar(LFDNoise3.ar(0.2).exprange(0.1, 1)) * LFDNoise3.ar(0.2).exprange(1, 4);
+          var lfsawAmt = Env([0, 1, 1, 1, 0], [10, 30 * 60 - 10, 15 * 60 - 10, 10]).ar;
+          offset = offset * amt + (LFSaw.ar(0.05 * amt) * lfsawAmt);
+          4.do { |i|
+            var chanIn = in[i];
+            sig = sig + PanAz.ar(4, chanIn, (i.linlin(0, 4, -1, 1) + (offset)).wrap(-1, 1));
+          };
+          ReplaceOut.ar(0, sig);
+        }).asBytes;
+      ]],
       [0.0, [\b_alloc, 0, 32768, 2]],
       [0.0, [\b_alloc, 1, 32768, 2]],
       [0.0, [\b_alloc, 2, 32768, 2]],
       [0.0, [\b_alloc, 3, 32768, 2]],
       [0.0, ["/b_allocRead", 4, this.score.path +/+ "samples/ir/irspectrumLf.wav", 0, -1]],
-      [0.0, ["/b_allocRead", 5, this.score.path +/+ "samples/ir/irspectrumRf.wav", 0, -1]],
+      [0.0, ["/b_allocRead", 5, this.score.path +/+ "samples/ir/irspectrumRf.wav", 0, -1]]
     ]);
 
     this.score.birdsong.addBuffersToScore(score);
+
+    // dusk / dawn
+    score.add([this.duskChorusStartTime, [\s_new, \rotate, 999, 1, 1]]);
+    [ // chorus members
+      \AE,
+      \CG,
+      \DA,
+      \EB_High,
+      \EB_Low,
+      \FC_High,
+      \FC_Low,
+      \GD
+    ].do { |name, i|
+      score.add([0.0, ["/b_allocRead", 50 + i, this.score.path +/+ "samples/chorus/" ++ name ++ ".wav", 0, -1]]);
+      score.add([this.duskChorusStartTime, (Synth.basicNew(\chorus, server, 50 + i)).newMsg(args: [buf: 50 + i])])
+    };
 
     clips.do { |clip|
       clip.addToScore(score, server);
