@@ -209,7 +209,6 @@ OHProgram {
           };
           ReplaceOut.ar(0, sig);
         }).asBytes;
-        }).asBytes;
       ]],
       [0.0, [\b_alloc, 0, 32768, 2]],
       [0.0, [\b_alloc, 1, 32768, 2]],
