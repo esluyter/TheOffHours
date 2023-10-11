@@ -114,12 +114,14 @@ OHProgram {
   }
 
   dawnChorusStartTime { ^(suntimes.sunriseSeconds - (30 * 60)).clip(0, score.duration); }
-  dawnChorusEndTime { ^(suntimes.sunriseSeconds + (15 * 60)).clip(0, score.duration); }
+  dawnChorusEndTime { ^(suntimes.sunriseSeconds + (15 * 60) + 15).clip(0, score.duration); }
   dawnChorusDuration { ^(this.dawnChorusEndTime - this.dawnChorusStartTime); }
+  dawnChorusOffset { ^0 }
 
   duskChorusStartTime { ^(suntimes.sunsetSeconds - (30 * 60)).clip(0, score.duration); }
-  duskChorusEndTime { ^(suntimes.sunsetSeconds + (15 * 60)).clip(0, score.duration); }
+  duskChorusEndTime { ^(suntimes.sunsetSeconds + (15 * 60) + 15).clip(0, score.duration); }
   duskChorusDuration { ^(this.duskChorusEndTime - this.duskChorusStartTime); }
+  duskChorusOffset { ^(2715 - this.duskChorusDuration); }
 
   renderScore { |filename = "test.wav", recordDuration = 54020, action|
     var server = Server(\nrt,
@@ -186,13 +188,16 @@ OHProgram {
         SynthDef(\chorus, {
           var out = 0;
           var buf = \buf.kr(0);
-          var insig = PlayBuf.ar(1, buf, BufRateScale.kr(buf), startPos: 0, doneAction: 2);
+          var offset = \offset.kr(0);
+          var duration = \duration.kr(2715);
+          var env = Env([0, 1, 1, 0], [10, duration - 20, 10], [4, 0, -4]).ar(2);
+          var insig = PlayBuf.ar(1, buf, BufRateScale.kr(buf), startPos: offset * 48000, doneAction: 2);
           var verb = PartConv.ar(insig * 0.01, 4096, 4, 1.0);
           var mix = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
           var sig = XFade2.ar(insig, verb, mix.linlin(-1, 1, -1, 0)) * mix.linexp(-1, 1, 0.4, 1.0);
           var pan = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
           var outsig = PanAz.ar(4, sig, pan) * 3.dbamp;
-          Out.ar(out, outsig);
+          Out.ar(out, outsig * env);
         }).asBytes;
       ]],
       [0.0, ['/d_recv',
@@ -236,7 +241,8 @@ OHProgram {
       \birds2
     ].do { |name, i|
       score.add([0.0, ["/b_allocRead", 50 + i, this.score.path +/+ "samples/chorus/" ++ name ++ ".wav", 0, -1]]);
-      score.add([this.duskChorusStartTime, (Synth.basicNew(\chorus, server, 50 + i)).newMsg(args: [buf: 50 + i])])
+      score.add([this.duskChorusStartTime, (Synth.basicNew(\chorus, server, 50 + i)).newMsg(args: [buf: 50 + i, offset: this.duskChorusOffset, duration: this.duskChorusDuration])]);
+      score.add([this.dawnChorusStartTime, (Synth.basicNew(\chorus, server, 70 + i)).newMsg(args: [buf: 50 + i, offset: this.dawnChorusOffset, duration: this.dawnChorusDuration])]);
     };
 
     clips.do { |clip|
