@@ -1,5 +1,5 @@
 OHProgramView {
-  var program, renderPath, s;
+  var program, renderPath, s, trimRenderPath;
   var win, view, timeline;
   var startTime = 0.0, duration = 54000;
   var playhead = 0.0;
@@ -9,8 +9,8 @@ OHProgramView {
   var playpointRout;
   var buf;
 
-  *new { |program, renderPath, irDir, s|
-    ^super.newCopyArgs(program, renderPath, s).init(irDir);
+  *new { |program, renderPath, irDir, s, trimRenderPath|
+    ^super.newCopyArgs(program, renderPath, s, trimRenderPath).init(irDir);
   }
 
   refresh {
@@ -272,7 +272,13 @@ OHProgramView {
     };
   }
 
-  prLoadBuf { buf = Buffer.cueSoundFile(s, renderPath, (playhead.postln * 48000).postln, 4); }
+  prLoadBuf {
+    if (playhead <= 36000) {
+      buf = Buffer.cueSoundFile(s, renderPath, (playhead.postln * 48000).postln, 4);
+    } {
+      buf = Buffer.cueSoundFile(s, trimRenderPath, ((playhead - 36000).postln * 48000).postln, 4);
+    };
+  }
   prPlayBuf {
     playing = playFunc.(buf);
     playpoint = playhead;

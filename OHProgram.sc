@@ -19,7 +19,7 @@ OHProgram {
     month ?? { month = today.month };
     day ?? { day = today.day };
 
-    clips = [];
+    clips = score.cycles.collect({ |cycle| cycle.clips[0].copy.startTime_(54000.0).program_(this) });
     deletedClips = [];
 
     suntimes = OHSunTimes(year, month, day);
@@ -106,7 +106,7 @@ OHProgram {
     };
   }
 
-  duration { ^score.duration }
+  duration { ^(score.duration + 20) }
   sampleRate { ^score.sampleRate }
 
   modeIndexAtSeconds { |seconds|
@@ -121,7 +121,7 @@ OHProgram {
   duskChorusEndTime { ^(suntimes.sunsetSeconds + (15 * 60)).clip(0, score.duration); }
   duskChorusDuration { ^(this.duskChorusEndTime - this.duskChorusStartTime); }
 
-  renderScore { |filename = "test.wav", recordDuration = 54000, action|
+  renderScore { |filename = "test.wav", recordDuration = 54020, action|
     var server = Server(\nrt,
       options: ServerOptions()
       .sampleRate_(48000)
@@ -230,7 +230,10 @@ OHProgram {
       \EB_Low,
       \FC_High,
       \FC_Low,
-      \GD
+      \GD,
+      \birds0,
+      \birds1,
+      \birds2
     ].do { |name, i|
       score.add([0.0, ["/b_allocRead", 50 + i, this.score.path +/+ "samples/chorus/" ++ name ++ ".wav", 0, -1]]);
       score.add([this.duskChorusStartTime, (Synth.basicNew(\chorus, server, 50 + i)).newMsg(args: [buf: 50 + i])])
@@ -250,7 +253,10 @@ OHProgram {
       sampleFormat: "int16",
       options: server.options,
       duration: recordDuration, //15 * 60 * 60,
-      action: { action.value }
+      action: {
+        ("ffmpeg -i " ++ this.score.recordPath +/+ filename ++ " -rf64 auto -ss 36000 " ++ this.score.recordPath +/+ "trim-" ++ filename).unixCmd; // trim from 10 hours till end
+        action.value
+      }
     );
 
 
