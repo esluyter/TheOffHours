@@ -264,7 +264,8 @@ OHProgram {
       options: server.options,
       duration: recordDuration, //15 * 60 * 60,
       action: {
-        ("/opt/homebrew/bin/ffmpeg -i '" ++ this.score.recordPath +/+ filename ++ "' -rf64 auto -ss 36000 '" ++ this.score.recordPath +/+ "trim-" ++ filename ++ "'").unixCmd; // trim from 10 hours till end
+        var trimPath = this.score.recordPath +/+ "trim-" ++ filename;
+        ("rm '" ++ trimPath ++ "';/opt/homebrew/bin/ffmpeg -i '" ++ this.score.recordPath +/+ filename ++ "' -rf64 auto -ss 36000 '" ++ trimPath ++ "'").unixCmd; // trim from 10 hours till end
         action.value
       }
     );
