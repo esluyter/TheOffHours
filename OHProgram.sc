@@ -14,10 +14,14 @@ OHProgram {
     var thisClip, thisClips, thisClipsInclusive;
     var clipsPile = score.clips.scramble.collect(_.program_(this));
 
+    var randSeed;
     var today = Date.getDate;
     year ?? { year = today.year };
     month ?? { month = today.month };
     day ?? { day = today.day };
+
+    randSeed = (year.asString ++ month.asString.padLeft(2, "0") ++ day.asString.padLeft(2, "0")).asInteger;
+    thisThread.randSeed = randSeed;
 
     clips = score.cycles.collect({ |cycle| cycle.clips[0].copy.startTime_(54000.0).program_(this) });
     deletedClips = [];
@@ -74,7 +78,7 @@ OHProgram {
       }; /// end whyyyyyy
     };
 
-    this.initBirdClips((year.asString ++ month.asString.padLeft(2, "0") ++ day.asString.padLeft(2, "0")).asInteger);
+    this.initBirdClips(randSeed);
   }
 
   initBirdClips { |seed = 0|
