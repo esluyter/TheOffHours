@@ -200,7 +200,7 @@ OHProgram {
           var mix = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
           var sig = XFade2.ar(insig, verb, mix.linlin(-1, 1, -1, 0)) * mix.linexp(-1, 1, 0.4, 1.0);
           var pan = LFDNoise3.kr(LFDNoise3.kr(0.2).exprange(0.1, 0.5));
-          var outsig = PanAz.ar(4, sig, pan) * 3.dbamp;
+          var outsig = PanAz.ar(4, sig, pan) * (3 + LFDNoise3.ar(0.2).range(0, 4)).dbamp;
           Out.ar(out, outsig * env);
         }).asBytes;
       ]],
