@@ -205,12 +205,12 @@ OHProgram {
           var in = In.ar(0, 4);
           var amt = Env([0, 0, 1, 0, 0], [10, 30 * 60 - 10, 15 * 60 - 10, 10], [0, -1, 1, 0] * 0).ar(2);
           var sig = DC.ar(0);
-          var offset = LFDNoise3.ar(LFDNoise3.ar(0.2).exprange(0.1, 1)) * LFDNoise3.ar(0.2).exprange(1, 4);
+          var offset = LFDNoise3.ar(LFDNoise3.ar(0.2).exprange(0.1, 1) * amt) * LFDNoise3.ar(0.2).exprange(1, 4);
           var lfsawAmt = Env([0, 1, 1, 1, 0], [10, 30 * 60 - 10, 15 * 60 - 10, 10]).ar;
           offset = offset * amt + (LFSaw.ar(0.05 * amt) * lfsawAmt);
           4.do { |i|
             var chanIn = in[i];
-            sig = sig + PanAz.ar(4, chanIn, (i.linlin(0, 4, -1, 1) + 0.5 + (offset)).wrap(-1, 1), width: 1.5, orientation: 1);
+            sig = sig + PanAz.ar(4, chanIn, (i.linlin(0, 4, -1, 1) + 0.5 + (offset)).wrap(-1, 1), width: amt.linlin(0, 1, 1.5, 2), orientation: 1);
           };
           ReplaceOut.ar(0, sig);
         }).asBytes;
